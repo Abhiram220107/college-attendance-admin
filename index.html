@@ -111,6 +111,27 @@
             </div>
         </section>
     </main>
+    
+    <div id="edit-modal" class="modal-container" style="display: none;">
+        <div class="modal-content">
+            <span class="close-btn" id="close-modal">&times;</span>
+            <h2>Edit User</h2>
+            <form id="edit-user-form">
+                <input type="hidden" id="edit-user-uid">
+                <input type="text" id="edit-name" placeholder="Full Name" required>
+                <input type="email" id="edit-email" placeholder="Email" required disabled>
+                <select id="edit-role" required>
+                    <option value="student">Student</option>
+                    <option value="faculty">Faculty</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <div id="edit-section-container" style="display: none;">
+                    <input type="text" id="edit-section" placeholder="Section">
+                </div>
+                <button type="submit">Save Changes</button>
+            </form>
+        </div>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
