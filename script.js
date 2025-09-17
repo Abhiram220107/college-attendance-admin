@@ -1,10 +1,11 @@
+// Firebase configuration and initialization
 const firebaseConfig = {
-  apiKey: "AIzaSyBRtkq7GpBLInpqTTrc1pcRvhOrYhWdlEY",
-  authDomain: "college-attendance-app-f394c.firebaseapp.com",
-  projectId: "college-attendance-app-f394c",
-  storageBucket: "college-attendance-app-f394c.firebasestorage.app",
-  messagingSenderId: "1001509576660",
-  appId: "1:1001509576660:web:3bfc16e7b8a637f3a5c041"
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -21,7 +22,7 @@ const logoutBtn = document.getElementById('logout-btn');
 const navButtons = document.querySelectorAll('.nav-button');
 const sections = document.querySelectorAll('.section-content');
 
-// New UI Elements for dynamic form
+// Dynamic form elements for adding users
 const roleSelect = document.getElementById('add-role');
 const studentInputsContainer = document.getElementById('student-specific-inputs');
 const addSectionInput = document.getElementById('add-section');
@@ -124,7 +125,6 @@ navButtons.forEach(button => {
 });
 
 // --- Data Loading and Management ---
-// Add event listener for dynamic section and year inputs
 roleSelect.addEventListener('change', () => {
     if (roleSelect.value === 'student') {
         studentInputsContainer.style.display = 'block';
@@ -139,7 +139,6 @@ roleSelect.addEventListener('change', () => {
     }
 });
 
-// Dynamically show/hide section and year inputs in edit modal
 editRoleSelect.addEventListener('change', () => {
     if (editRoleSelect.value === 'student') {
         editStudentInputsContainer.style.display = 'block';
@@ -177,7 +176,6 @@ async function loadUsers() {
     }
 }
 
-// Add a new user
 document.getElementById('add-user-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('add-email').value;
@@ -205,19 +203,6 @@ document.getElementById('add-user-form').addEventListener('submit', async (e) =>
     }
 });
 
-// Delete a user
-async function deleteUser(uid) {
-    if (confirm('Are you sure you want to delete this user?')) {
-        try {
-            await db.collection('users').doc(uid).delete();
-            alert('User document deleted successfully. User will no longer be able to log in.');
-            loadUsers();
-        } catch (error) {
-            alert(error.message);
-        }
-    }
-}
-
 // Event delegation for edit button
 document.getElementById('users-table').addEventListener('click', (e) => {
     if (e.target.classList.contains('edit-btn')) {
@@ -243,7 +228,7 @@ async function openEditModal(uid) {
         } else {
             editStudentInputsContainer.style.display = 'none';
         }
-        editModal.style.display = 'block';
+        editModal.style.display = 'flex'; // Use flex to center the modal
     }
 }
 
@@ -274,7 +259,19 @@ closeModal.addEventListener('click', () => {
     editModal.style.display = 'none';
 });
 
-// All other functions remain unchanged.
+// Delete a user
+async function deleteUser(uid) {
+    if (confirm('Are you sure you want to delete this user?')) {
+        try {
+            await db.collection('users').doc(uid).delete();
+            alert('User document deleted successfully. User will no longer be able to log in.');
+            loadUsers();
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+}
+
 async function loadFacultyForClassForm() {
     const facultySelect = document.getElementById('faculty-select');
     facultySelect.innerHTML = '<option value="">Select Faculty</option>';
