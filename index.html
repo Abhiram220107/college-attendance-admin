@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -44,7 +44,11 @@
                             <option value="">Select Role</option>
                             <option value="student">Student</option>
                             <option value="faculty">Faculty</option>
+                            <option value="admin">Admin</option>
                         </select>
+                        <div id="section-input-container" style="display: none;">
+                            <input type="text" id="add-section" placeholder="Section" required>
+                        </div>
                         <button type="submit">Add User</button>
                     </form>
                     <div class="user-list">
@@ -55,6 +59,7 @@
                                     <th>Name</th>
                                     <th>Email</th>
                                     <th>Role</th>
+                                    <th>Section</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -114,4 +119,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
