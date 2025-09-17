@@ -1,11 +1,11 @@
 // Firebase configuration and initialization
 const firebaseConfig = {
-    apiKey: "AIzaSyBRtkq7GpBLInpqTTrc1pcRvhOrYhWdlEY",
-    authDomain: "college-attendance-app-f394c.firebaseapp.com",
-    projectId: "college-attendance-app-f394c",
-    storageBucket: "college-attendance-app-f394c.firebasestorage.app",
-    messagingSenderId: "1001509576660",
-    appId: "1:1001509576660:web:3bfc16e7b8a637f3a5c041"
+  apiKey: "AIzaSyBRtkq7GpBLInpqTTrc1pcRvhOrYhWdlEY",
+  authDomain: "college-attendance-app-f394c.firebaseapp.com",
+  projectId: "college-attendance-app-f394c",
+  storageBucket: "college-attendance-app-f394c.firebasestorage.app",
+  messagingSenderId: "1001509576660",
+  appId: "1:1001509576660:web:3bfc16e7b8a637f3a5c041"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -39,7 +39,7 @@ async function checkUserRole(uid) {
         const userDoc = await db.collection('users').doc(uid).get();
         if (userDoc.exists && userDoc.data().role === 'admin') {
             showDashboard();
-            // Load initial data for the default active tab (Manage Users)
+            // Call the functions to load initial data
             loadUsers();
             loadClasses();
             loadFacultyForClassForm();
@@ -73,8 +73,8 @@ loginForm.addEventListener('submit', (e) => {
 
     auth.signInWithEmailAndPassword(email, password)
         .then(() => {
-            // The onAuthStateChanged listener handles the success logic.
-            // No need to add more code here.
+            // The onAuthStateChanged listener will handle the redirection.
+            // No code is needed here.
         })
         .catch(error => {
             let errorMessage = "An error occurred. Please try again.";
