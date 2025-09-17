@@ -1,4 +1,3 @@
-// Firebase configuration and initialization
 const firebaseConfig = {
   apiKey: "AIzaSyBRtkq7GpBLInpqTTrc1pcRvhOrYhWdlEY",
   authDomain: "college-attendance-app-f394c.firebaseapp.com",
@@ -22,6 +21,11 @@ const logoutBtn = document.getElementById('logout-btn');
 const navButtons = document.querySelectorAll('.nav-button');
 const sections = document.querySelectorAll('.section-content');
 
+// New UI Elements for dynamic form
+const roleSelect = document.getElementById('add-role');
+const sectionContainer = document.getElementById('section-input-container');
+const sectionInput = document.getElementById('add-section');
+
 // --- Main App Logic ---
 
 // Listen for authentication state changes
@@ -39,12 +43,7 @@ async function checkUserRole(uid) {
         const userDoc = await db.collection('users').doc(uid).get();
         if (userDoc.exists && userDoc.data().role === 'admin') {
             showDashboard();
-            // Call the functions to load initial data
             loadUsers();
-            loadClasses();
-            loadFacultyForClassForm();
-            loadStudentsForAnalytics();
-            loadAnalyticsData();
         } else {
             alert('Access denied. You are not an admin.');
             auth.signOut();
@@ -73,7 +72,7 @@ loginForm.addEventListener('submit', (e) => {
 
     auth.signInWithEmailAndPassword(email, password)
         .then(() => {
-            // The onAuthStateChanged listener will handle the redirection.
+            // The onAuthStateChanged listener will handle the success logic.
             // No code is needed here.
         })
         .catch(error => {
@@ -108,7 +107,6 @@ navButtons.forEach(button => {
         const targetId = button.id.replace('nav-', '');
         document.getElementById(targetId).classList.add('active-content');
         
-        // Call the specific loading function for each tab
         if (targetId === 'users-section') {
             loadUsers();
         } else if (targetId === 'classes-section') {
@@ -123,6 +121,18 @@ navButtons.forEach(button => {
 });
 
 // --- Data Loading and Management ---
+// Add event listener for dynamic section input
+roleSelect.addEventListener('change', () => {
+    if (roleSelect.value === 'student') {
+        sectionContainer.style.display = 'block';
+        sectionInput.required = true;
+    } else {
+        sectionContainer.style.display = 'none';
+        sectionInput.required = false;
+        sectionInput.value = '';
+    }
+});
+
 // Load and display users
 async function loadUsers() {
     const usersTableBody = document.querySelector('#users-table tbody');
@@ -137,6 +147,7 @@ async function loadUsers() {
                 <td>${user.name}</td>
                 <td>${user.email}</td>
                 <td>${user.role}</td>
+                <td>${user.section ? user.section : 'N/A'}</td>
                 <td class="actions-buttons">
                     <button onclick="deleteUser('${doc.id}')">Delete</button>
                 </td>
@@ -145,7 +156,7 @@ async function loadUsers() {
         });
     } catch (error) {
         console.error("Error fetching users: ", error);
-        usersTableBody.innerHTML = '<tr><td colspan="4">Error loading users. Check console for details.</td></tr>';
+        usersTableBody.innerHTML = '<tr><td colspan="5">Error loading users. Check console for details.</td></tr>';
     }
 }
 
@@ -156,16 +167,19 @@ document.getElementById('add-user-form').addEventListener('submit', async (e) =>
     const password = document.getElementById('add-password').value;
     const name = document.getElementById('add-name').value;
     const role = document.getElementById('add-role').value;
+    const section = (role === 'student') ? document.getElementById('add-section').value : null;
 
     try {
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         await db.collection('users').doc(userCredential.user.uid).set({
             name: name,
             email: email,
-            role: role
+            role: role,
+            section: section
         });
         alert('User added successfully!');
         document.getElementById('add-user-form').reset();
+        sectionContainer.style.display = 'none';
         loadUsers(); // Refresh the user list
     } catch (error) {
         alert(error.message);
@@ -210,8 +224,8 @@ async function loadStudentsForAnalytics() {
         const option = document.createElement('option');
         option.value = doc.id;
         option.textContent = doc.data().name;
-        studentSelect.appendChild(option.cloneNode(true)); // for analytics
-        studentAssignSelect.appendChild(option); // for class assignment
+        studentSelect.appendChild(option.cloneNode(true));
+        studentAssignSelect.appendChild(option);
     });
 }
 
@@ -298,7 +312,6 @@ async function loadAnalyticsData() {
         totalClasses[classId]++;
     });
 
-    // Display overall class attendance (bar chart)
     const classNames = [];
     const attendanceCounts = [];
     const totalClassCounts = [];
