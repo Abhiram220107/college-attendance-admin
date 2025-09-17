@@ -168,9 +168,15 @@
                     <option value="faculty">Faculty</option>
                     <option value="admin">Admin</option>
                 </select>
-                <div id="edit-student-inputs" style="display: none;">
+                                <div id="edit-student-inputs" style="display: none;">
                     <input type="text" id="edit-section" placeholder="Section">
-                    <input type="number" id="edit-year" placeholder="Year">
+                    <select id="edit-year" required>
+                        <option value="">Select Year</option>
+                        <option value="I">I</option>
+                        <option value="II">II</option>
+                        <option value="III">III</option>
+                        <option value="IV">IV</option>
+                    </select>
                 </div>
                 <button type="submit">Save Changes</button>
             </form>
@@ -184,4 +190,5 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
