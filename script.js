@@ -1,3 +1,4 @@
+// Firebase configuration and initialization
 const firebaseConfig = {
   apiKey: "AIzaSyBRtkq7GpBLInpqTTrc1pcRvhOrYhWdlEY",
   authDomain: "college-attendance-app-f394c.firebaseapp.com",
@@ -24,6 +25,17 @@ const sections = document.querySelectorAll('.section-content');
 const roleSelect = document.getElementById('add-role');
 const sectionContainer = document.getElementById('section-input-container');
 const sectionInput = document.getElementById('add-section');
+
+// Edit Modal Elements
+const editModal = document.getElementById('edit-modal');
+const closeModal = document.getElementById('close-modal');
+const editForm = document.getElementById('edit-user-form');
+const editName = document.getElementById('edit-name');
+const editEmail = document.getElementById('edit-email');
+const editRole = document.getElementById('edit-role');
+const editSection = document.getElementById('edit-section');
+const editSectionContainer = document.getElementById('edit-section-container');
+let currentEditingUserUid = null;
 
 // --- Main App Logic ---
 auth.onAuthStateChanged(user => {
@@ -95,6 +107,7 @@ navButtons.forEach(button => {
         sections.forEach(section => section.classList.remove('active-content'));
         const targetId = button.id.replace('nav-', '');
         document.getElementById(targetId).classList.add('active-content');
+        
         if (targetId === 'users-section') {
             loadUsers();
         } else if (targetId === 'classes-section') {
@@ -120,6 +133,16 @@ roleSelect.addEventListener('change', () => {
     }
 });
 
+// Dynamically show/hide section input in edit modal
+editRole.addEventListener('change', () => {
+    if (editRole.value === 'student') {
+        editSectionContainer.style.display = 'block';
+    } else {
+        editSectionContainer.style.display = 'none';
+        editSection.value = '';
+    }
+});
+
 async function loadUsers() {
     const usersTableBody = document.querySelector('#users-table tbody');
     usersTableBody.innerHTML = '';
@@ -134,7 +157,7 @@ async function loadUsers() {
                 <td>${user.role}</td>
                 <td>${user.section ? user.section : 'N/A'}</td>
                 <td class="actions-buttons">
-                    <button onclick="editUser('${doc.id}')">Edit</button>
+                    <button onclick="openEditModal('${doc.id}')">Edit</button>
                     <button onclick="deleteUser('${doc.id}')">Delete</button>
                 </td>
             `;
@@ -154,6 +177,7 @@ document.getElementById('add-user-form').addEventListener('submit', async (e) =>
     const name = document.getElementById('add-name').value;
     const role = document.getElementById('add-role').value;
     const section = (role === 'student') ? document.getElementById('add-section').value : null;
+
     try {
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         await db.collection('users').doc(userCredential.user.uid).set({
@@ -171,19 +195,50 @@ document.getElementById('add-user-form').addEventListener('submit', async (e) =>
     }
 });
 
-// Edit user function
-async function editUser(uid) {
+// Open the edit modal with user data
+async function openEditModal(uid) {
     const userDoc = await db.collection('users').doc(uid).get();
     if (userDoc.exists) {
         const user = userDoc.data();
-        const newName = prompt("Edit Name:", user.name);
-        if (newName !== null) {
-            await db.collection('users').doc(uid).update({ name: newName });
-            alert('User name updated successfully!');
-            loadUsers();
+        currentEditingUserUid = uid;
+        editName.value = user.name;
+        editEmail.value = user.email;
+        editRole.value = user.role;
+        editSection.value = user.section || '';
+        if (user.role === 'student') {
+            editSectionContainer.style.display = 'block';
+        } else {
+            editSectionContainer.style.display = 'none';
         }
+        editModal.style.display = 'block';
     }
 }
+
+// Save edits from the modal
+editForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!currentEditingUserUid) return;
+
+    const updatedData = {
+        name: editName.value,
+        role: editRole.value,
+        section: editRole.value === 'student' ? editSection.value : null
+    };
+
+    try {
+        await db.collection('users').doc(currentEditingUserUid).update(updatedData);
+        alert('User updated successfully!');
+        editModal.style.display = 'none';
+        loadUsers();
+    } catch (error) {
+        alert(error.message);
+    }
+});
+
+// Close the edit modal
+closeModal.addEventListener('click', () => {
+    editModal.style.display = 'none';
+});
 
 // Delete a user
 async function deleteUser(uid) {
