@@ -55,7 +55,13 @@ async function checkUserRole(uid) {
         const userDoc = await db.collection('users').doc(uid).get();
         if (userDoc.exists && userDoc.data().role === 'admin') {
             showDashboard();
-            loadUsers();
+            // Get the last active tab from local storage, default to 'users-section'
+            const lastActiveTab = localStorage.getItem('lastActiveTab') || 'users-section';
+            // Trigger a click on the corresponding navigation button
+            const navButtonToClick = document.getElementById(`nav-${lastActiveTab}`);
+            if (navButtonToClick) {
+                navButtonToClick.click();
+            }
         } else {
             alert('Access denied. You are not an admin.');
             auth.signOut();
@@ -114,6 +120,12 @@ navButtons.forEach(button => {
         sections.forEach(section => section.classList.remove('active-content'));
         const targetId = button.id.replace('nav-', '');
         document.getElementById(targetId).classList.add('active-content');
+<<<<<<< goutham-11-16-patch-2
+        
+        // Save the active tab to local storage
+        localStorage.setItem('lastActiveTab', targetId);
+=======
+>>>>>>> main
 
         if (targetId === 'users-section') {
             loadUsers();
@@ -290,7 +302,11 @@ async function loadFacultyForClassForm() {
 }
 
 async function loadStudentsForClassAssignment() {
+<<<<<<< goutham-11-16-patch-2
+    const studentAssignSelect = document.getElementById('student-select');
+=======
     const studentAssignSelect = document.getElementById('student-assignment-select');
+>>>>>>> main
     studentAssignSelect.innerHTML = '';
     const studentDocs = await db.collection('users').where('role', '==', 'student').get();
     studentDocs.forEach(doc => {
@@ -302,14 +318,29 @@ async function loadStudentsForClassAssignment() {
 }
 
 async function loadClasses() {
+<<<<<<< goutham-11-16-patch-2
+    const classesList = document.getElementById('classes-list');
+    const classSelect = document.getElementById('class-select');
+    const classAssignmentSelect = document.getElementById('class-assignment-select');
+
+    classesList.innerHTML = '';
+=======
     const classSelect = document.getElementById('timetable-class-select');
     const classAssignmentSelect = document.getElementById('class-assignment-select');
+>>>>>>> main
     classSelect.innerHTML = '<option value="">Select Class</option>';
     classAssignmentSelect.innerHTML = '<option value="">Select Class</option>';
 
     const classDocs = await db.collection('classes').get();
     classDocs.forEach(doc => {
         const classData = doc.data();
+<<<<<<< goutham-11-16-patch-2
+        const li = document.createElement('li');
+        li.textContent = `${classData.class_name} (Faculty: ${classData.faculty_id})`;
+        classesList.appendChild(li);
+
+=======
+>>>>>>> main
         const option = document.createElement('option');
         option.value = doc.id;
         option.textContent = classData.class_name;
@@ -346,6 +377,13 @@ async function loadTimetables() {
     }
 }
 
+<<<<<<< goutham-11-16-patch-2
+// Add a new class
+document.getElementById('add-class-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const className = document.getElementById('class-name').value;
+    const facultyId = document.getElementById('faculty-select').value;
+=======
 document.getElementById('add-timetable-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const facultyId = document.getElementById('timetable-faculty-select').value;
@@ -355,6 +393,7 @@ document.getElementById('add-timetable-form').addEventListener('submit', async (
     const startTime = document.getElementById('timetable-start-time').value;
     const endTime = document.getElementById('timetable-end-time').value;
     const className = document.getElementById('timetable-class-select').options[document.getElementById('timetable-class-select').selectedIndex].text;
+>>>>>>> main
 
     try {
         await db.collection('timetables').add({
@@ -374,10 +413,48 @@ document.getElementById('add-timetable-form').addEventListener('submit', async (
     }
 });
 
+<<<<<<< goutham-11-16-patch-2
+document.getElementById('add-timetable-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const facultyId = document.getElementById('faculty-select').value;
+    const classId = document.getElementById('class-select').value;
+    const section = document.getElementById('section-select').value;
+    const day = document.getElementById('day-select').value;
+    const startTime = document.getElementById('start-time').value;
+    const endTime = document.getElementById('end-time').value;
+    const className = document.getElementById('class-select').options[document.getElementById('class-select').selectedIndex].text;
+
+    try {
+        await db.collection('timetables').add({
+            faculty_id: facultyId,
+            class_id: classId,
+            class_name: className,
+            section: section,
+            day: day,
+            start_time: startTime,
+            end_time: endTime
+        });
+        alert('Timetable entry added successfully!');
+        document.getElementById('add-timetable-form').reset();
+        loadTimetables();
+    } catch (error) {
+        alert("Error adding timetable: " + error.message);
+    }
+});
+
+// Assign students to a class
+document.getElementById('assign-students-btn').addEventListener('click', async () => {
+    const classId = document.getElementById('class-assignment-select').value;
+    const studentSelect = document.getElementById('student-assignment-select');
+    const selectedStudentIds = Array.from(studentSelect.options)
+                                   .filter(option => option.selected)
+                                   .map(option => option.value);
+=======
 document.getElementById('assign-students-btn').addEventListener('click', async () => {
     const classId = document.getElementById('class-assignment-select').value;
     const studentSelect = document.getElementById('student-assignment-select');
     const selectedStudentIds = Array.from(studentSelect.options).filter(option => option.selected).map(option => option.value);
+>>>>>>> main
 
     if (classId && selectedStudentIds.length > 0) {
         try {
