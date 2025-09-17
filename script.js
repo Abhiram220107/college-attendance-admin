@@ -35,12 +35,18 @@ auth.onAuthStateChanged(user => {
 
 // Check user role and display dashboard if they are an admin
 async function checkUserRole(uid) {
-    const userDoc = await db.collection('users').doc(uid).get();
-    if (userDoc.exists && userDoc.data().role === 'admin') {
-        showDashboard();
-        loadDashboardData();
-    } else {
-        alert('Access denied. You are not an admin.');
+    try {
+        const userDoc = await db.collection('users').doc(uid).get();
+        if (userDoc.exists && userDoc.data().role === 'admin') {
+            showDashboard();
+            loadDashboardData();
+        } else {
+            // Log out non-admin users immediately
+            alert('Access denied. You are not an admin.');
+            auth.signOut();
+        }
+    } catch (error) {
+        alert("Failed to load user data. Please try again.");
         auth.signOut();
     }
 }
@@ -63,13 +69,11 @@ loginForm.addEventListener('submit', (e) => {
 
     auth.signInWithEmailAndPassword(email, password)
         .catch(error => {
-            let errorMessage = "An unknown error occurred.";
+            let errorMessage = "An error occurred. Please try again.";
             switch (error.code) {
                 case "auth/invalid-email":
-                    errorMessage = "Invalid email address format.";
-                    break;
-                case "auth/user-not-found":
                 case "auth/wrong-password":
+                case "auth/user-not-found":
                     errorMessage = "Invalid email or password.";
                     break;
                 case "auth/user-disabled":
@@ -361,4 +365,3 @@ document.getElementById('analytics-student-select').addEventListener('change', a
         document.getElementById('student-attendance-percentage').textContent = 'No attendance data available.';
     }
 });
-
