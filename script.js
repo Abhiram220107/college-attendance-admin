@@ -1,4 +1,3 @@
-// Firebase configuration and initialization
 const firebaseConfig = {
   apiKey: "AIzaSyBRtkq7GpBLInpqTTrc1pcRvhOrYhWdlEY",
   authDomain: "college-attendance-app-f394c.firebaseapp.com",
@@ -22,19 +21,22 @@ const logoutBtn = document.getElementById('logout-btn');
 const navButtons = document.querySelectorAll('.nav-button');
 const sections = document.querySelectorAll('.section-content');
 
+// New UI Elements for dynamic form
 const roleSelect = document.getElementById('add-role');
-const sectionContainer = document.getElementById('section-input-container');
-const sectionInput = document.getElementById('add-section');
+const studentInputsContainer = document.getElementById('student-specific-inputs');
+const addSectionInput = document.getElementById('add-section');
+const addYearInput = document.getElementById('add-year');
 
 // Edit Modal Elements
 const editModal = document.getElementById('edit-modal');
 const closeModal = document.getElementById('close-modal');
 const editForm = document.getElementById('edit-user-form');
-const editName = document.getElementById('edit-name');
-const editEmail = document.getElementById('edit-email');
-const editRole = document.getElementById('edit-role');
-const editSection = document.getElementById('edit-section');
-const editSectionContainer = document.getElementById('edit-section-container');
+const editNameInput = document.getElementById('edit-name');
+const editEmailInput = document.getElementById('edit-email');
+const editRoleSelect = document.getElementById('edit-role');
+const editStudentInputsContainer = document.getElementById('edit-student-inputs');
+const editSectionInput = document.getElementById('edit-section');
+const editYearInput = document.getElementById('edit-year');
 let currentEditingUserUid = null;
 
 // --- Main App Logic ---
@@ -122,24 +124,29 @@ navButtons.forEach(button => {
 });
 
 // --- Data Loading and Management ---
+// Add event listener for dynamic section and year inputs
 roleSelect.addEventListener('change', () => {
     if (roleSelect.value === 'student') {
-        sectionContainer.style.display = 'block';
-        sectionInput.required = true;
+        studentInputsContainer.style.display = 'block';
+        addSectionInput.required = true;
+        addYearInput.required = true;
     } else {
-        sectionContainer.style.display = 'none';
-        sectionInput.required = false;
-        sectionInput.value = '';
+        studentInputsContainer.style.display = 'none';
+        addSectionInput.required = false;
+        addYearInput.required = false;
+        addSectionInput.value = '';
+        addYearInput.value = '';
     }
 });
 
-// Dynamically show/hide section input in edit modal
-editRole.addEventListener('change', () => {
-    if (editRole.value === 'student') {
-        editSectionContainer.style.display = 'block';
+// Dynamically show/hide section and year inputs in edit modal
+editRoleSelect.addEventListener('change', () => {
+    if (editRoleSelect.value === 'student') {
+        editStudentInputsContainer.style.display = 'block';
     } else {
-        editSectionContainer.style.display = 'none';
-        editSection.value = '';
+        editStudentInputsContainer.style.display = 'none';
+        editSectionInput.value = '';
+        editYearInput.value = '';
     }
 });
 
@@ -156,8 +163,9 @@ async function loadUsers() {
                 <td>${user.email}</td>
                 <td>${user.role}</td>
                 <td>${user.section ? user.section : 'N/A'}</td>
+                <td>${user.year ? user.year : 'N/A'}</td>
                 <td class="actions-buttons">
-                    <button onclick="openEditModal('${doc.id}')">Edit</button>
+                    <button class="edit-btn" data-uid="${doc.id}">Edit</button>
                     <button onclick="deleteUser('${doc.id}')">Delete</button>
                 </td>
             `;
@@ -165,7 +173,7 @@ async function loadUsers() {
         });
     } catch (error) {
         console.error("Error fetching users: ", error);
-        usersTableBody.innerHTML = '<tr><td colspan="5">Error loading users. Check console for details.</td></tr>';
+        usersTableBody.innerHTML = '<tr><td colspan="6">Error loading users. Check console for details.</td></tr>';
     }
 }
 
@@ -176,7 +184,8 @@ document.getElementById('add-user-form').addEventListener('submit', async (e) =>
     const password = document.getElementById('add-password').value;
     const name = document.getElementById('add-name').value;
     const role = document.getElementById('add-role').value;
-    const section = (role === 'student') ? document.getElementById('add-section').value : null;
+    const section = (role === 'student') ? addSectionInput.value : null;
+    const year = (role === 'student') ? addYearInput.value : null;
 
     try {
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
@@ -184,14 +193,36 @@ document.getElementById('add-user-form').addEventListener('submit', async (e) =>
             name: name,
             email: email,
             role: role,
-            section: section
+            section: section,
+            year: year
         });
         alert('User added successfully!');
         document.getElementById('add-user-form').reset();
-        sectionContainer.style.display = 'none';
+        studentInputsContainer.style.display = 'none';
         loadUsers();
     } catch (error) {
         alert(error.message);
+    }
+});
+
+// Delete a user
+async function deleteUser(uid) {
+    if (confirm('Are you sure you want to delete this user?')) {
+        try {
+            await db.collection('users').doc(uid).delete();
+            alert('User document deleted successfully. User will no longer be able to log in.');
+            loadUsers();
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+}
+
+// Event delegation for edit button
+document.getElementById('users-table').addEventListener('click', (e) => {
+    if (e.target.classList.contains('edit-btn')) {
+        const uid = e.target.getAttribute('data-uid');
+        openEditModal(uid);
     }
 });
 
@@ -201,14 +232,16 @@ async function openEditModal(uid) {
     if (userDoc.exists) {
         const user = userDoc.data();
         currentEditingUserUid = uid;
-        editName.value = user.name;
-        editEmail.value = user.email;
-        editRole.value = user.role;
-        editSection.value = user.section || '';
+        editNameInput.value = user.name;
+        editEmailInput.value = user.email;
+        editRoleSelect.value = user.role;
+        editSectionInput.value = user.section || '';
+        editYearInput.value = user.year || '';
+        
         if (user.role === 'student') {
-            editSectionContainer.style.display = 'block';
+            editStudentInputsContainer.style.display = 'block';
         } else {
-            editSectionContainer.style.display = 'none';
+            editStudentInputsContainer.style.display = 'none';
         }
         editModal.style.display = 'block';
     }
@@ -220,9 +253,10 @@ editForm.addEventListener('submit', async (e) => {
     if (!currentEditingUserUid) return;
 
     const updatedData = {
-        name: editName.value,
-        role: editRole.value,
-        section: editRole.value === 'student' ? editSection.value : null
+        name: editNameInput.value,
+        role: editRoleSelect.value,
+        section: editRoleSelect.value === 'student' ? editSectionInput.value : null,
+        year: editRoleSelect.value === 'student' ? editYearInput.value : null,
     };
 
     try {
@@ -239,19 +273,6 @@ editForm.addEventListener('submit', async (e) => {
 closeModal.addEventListener('click', () => {
     editModal.style.display = 'none';
 });
-
-// Delete a user
-async function deleteUser(uid) {
-    if (confirm('Are you sure you want to delete this user?')) {
-        try {
-            await db.collection('users').doc(uid).delete();
-            alert('User document deleted successfully. User will no longer be able to log in.');
-            loadUsers();
-        } catch (error) {
-            alert(error.message);
-        }
-    }
-}
 
 // All other functions remain unchanged.
 async function loadFacultyForClassForm() {
