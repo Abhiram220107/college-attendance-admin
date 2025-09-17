@@ -1,4 +1,3 @@
-// Firebase configuration and initialization
 const firebaseConfig = {
   apiKey: "AIzaSyBRtkq7GpBLInpqTTrc1pcRvhOrYhWdlEY",
   authDomain: "college-attendance-app-f394c.firebaseapp.com",
@@ -7,7 +6,6 @@ const firebaseConfig = {
   messagingSenderId: "1001509576660",
   appId: "1:1001509576660:web:3bfc16e7b8a637f3a5c041"
 };
-
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
@@ -39,7 +37,7 @@ const editStudentInputsContainer = document.getElementById('edit-student-inputs'
 const editSectionInput = document.getElementById('edit-section');
 const editYearInput = document.getElementById('edit-year');
 let currentEditingUserUid = null;
-let activeChart = null; // To store the Chart.js instance for proper destruction
+let activeChart = null;
 
 // --- Main App Logic ---
 auth.onAuthStateChanged(user => {
@@ -82,7 +80,6 @@ loginForm.addEventListener('submit', (e) => {
     const password = document.getElementById('password').value;
     auth.signInWithEmailAndPassword(email, password)
         .then(() => {
-            // The onAuthStateChanged listener handles the success logic.
         })
         .catch(error => {
             let errorMessage = "An error occurred. Please try again.";
@@ -374,7 +371,6 @@ document.getElementById('add-timetable-form').addEventListener('submit', async (
     }
 });
 
-// Assign students to a class
 document.getElementById('assign-students-btn').addEventListener('click', async () => {
     const classId = document.getElementById('class-assignment-select').value;
     const studentSelect = document.getElementById('student-assignment-select');
