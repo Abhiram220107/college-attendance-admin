@@ -1,11 +1,11 @@
 // Firebase configuration and initialization
 const firebaseConfig = {
-  apiKey: "AIzaSyBRtkq7GpBLInpqTTrc1pcRvhOrYhWdlEY",
-  authDomain: "college-attendance-app-f394c.firebaseapp.com",
-  projectId: "college-attendance-app-f394c",
-  storageBucket: "college-attendance-app-f394c.firebasestorage.app",
-  messagingSenderId: "1001509576660",
-  appId: "1:1001509576660:web:3bfc16e7b8a637f3a5c041"
+    apiKey: "AIzaSyBRtkq7GpBLInpqTTrc1pcRvhOrYhWdlEY",
+    authDomain: "college-attendance-app-f394c.firebaseapp.com",
+    projectId: "college-attendance-app-f394c",
+    storageBucket: "college-attendance-app-f394c.firebasestorage.app",
+    messagingSenderId: "1001509576660",
+    appId: "1:1001509576660:web:3bfc16e7b8a637f3a5c041"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -55,7 +55,9 @@ async function checkUserRole(uid) {
         const userDoc = await db.collection('users').doc(uid).get();
         if (userDoc.exists && userDoc.data().role === 'admin') {
             showDashboard();
+            // Get the last active tab from local storage, default to 'users-section'
             const lastActiveTab = localStorage.getItem('lastActiveTab') || 'users-section';
+            // Trigger a click on the corresponding navigation button
             const navButtonToClick = document.getElementById(`nav-${lastActiveTab}`);
             if (navButtonToClick) {
                 navButtonToClick.click();
@@ -116,6 +118,7 @@ navButtons.forEach(button => {
         const targetId = button.id.replace('nav-', '');
         document.getElementById(targetId).classList.add('active-content');
         
+        // Save the active tab to local storage
         localStorage.setItem('lastActiveTab', targetId);
 
         if (targetId === 'users-section') {
@@ -305,14 +308,21 @@ async function loadStudentsForClassAssignment() {
 }
 
 async function loadClasses() {
+    const classesList = document.getElementById('classes-list');
     const classSelect = document.getElementById('timetable-class-select');
     const classAssignmentSelect = document.getElementById('class-assignment-select');
+
+    classesList.innerHTML = '';
     classSelect.innerHTML = '<option value="">Select Class</option>';
     classAssignmentSelect.innerHTML = '<option value="">Select Class</option>';
 
     const classDocs = await db.collection('classes').get();
     classDocs.forEach(doc => {
         const classData = doc.data();
+        const li = document.createElement('li');
+        li.textContent = `${classData.class_name} (Faculty: ${classData.faculty_id})`;
+        classesList.appendChild(li);
+
         const option = document.createElement('option');
         option.value = doc.id;
         option.textContent = classData.class_name;
@@ -349,6 +359,26 @@ async function loadTimetables() {
     }
 }
 
+// Add a new class
+document.getElementById('add-class-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const className = document.getElementById('class-name').value;
+    const facultyId = document.getElementById('faculty-select').value;
+
+    try {
+        await db.collection('classes').add({
+            class_name: className,
+            faculty_id: facultyId,
+            student_ids: []
+        });
+        alert('Class created successfully!');
+        document.getElementById('add-class-form').reset();
+        loadClasses();
+    } catch (error) {
+        alert(error.message);
+    }
+});
+
 document.getElementById('add-timetable-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const facultyId = document.getElementById('timetable-faculty-select').value;
@@ -381,7 +411,9 @@ document.getElementById('add-timetable-form').addEventListener('submit', async (
 document.getElementById('assign-students-btn').addEventListener('click', async () => {
     const classId = document.getElementById('class-assignment-select').value;
     const studentSelect = document.getElementById('student-assignment-select');
-    const selectedStudentIds = Array.from(studentSelect.options).filter(option => option.selected).map(option => option.value);
+    const selectedStudentIds = Array.from(studentSelect.options)
+                                   .filter(option => option.selected)
+                                   .map(option => option.value);
 
     if (classId && selectedStudentIds.length > 0) {
         try {
