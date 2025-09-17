@@ -58,14 +58,42 @@
                         </div>
                         <button type="submit">Add User</button>
                     </form>
+
                     <div class="user-list">
-                        <h3>Existing Users</h3>
-                        <table id="users-table">
+                        <h3>Admins</h3>
+                        <table id="admins-table">
                             <thead>
                                 <tr>
                                     <th>Name</th>
                                     <th>Email</th>
-                                    <th>Role</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div class="user-list">
+                        <h3>Faculty</h3>
+                        <table id="faculty-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div class="user-list">
+                        <h3>Students</h3>
+                        <table id="students-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
                                     <th>Section</th>
                                     <th>Year</th>
                                     <th>Actions</th>
@@ -168,15 +196,9 @@
                     <option value="faculty">Faculty</option>
                     <option value="admin">Admin</option>
                 </select>
-                                <div id="edit-student-inputs" style="display: none;">
+                <div id="edit-student-inputs" style="display: none;">
                     <input type="text" id="edit-section" placeholder="Section">
-                    <select id="edit-year" required>
-                        <option value="">Select Year</option>
-                        <option value="I">I</option>
-                        <option value="II">II</option>
-                        <option value="III">III</option>
-                        <option value="IV">IV</option>
-                    </select>
+                    <input type="number" id="edit-year" placeholder="Year">
                 </div>
                 <button type="submit">Save Changes</button>
             </form>
@@ -190,5 +212,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
-
