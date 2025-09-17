@@ -39,7 +39,12 @@ async function checkUserRole(uid) {
         const userDoc = await db.collection('users').doc(uid).get();
         if (userDoc.exists && userDoc.data().role === 'admin') {
             showDashboard();
-            loadDashboardData();
+            // Call individual loading functions when the user logs in
+            loadUsers();
+            loadClasses();
+            loadFacultyForClassForm();
+            loadStudentsForAnalytics();
+            loadAnalyticsData();
         } else {
             // Log out non-admin users immediately
             alert('Access denied. You are not an admin.');
@@ -68,6 +73,11 @@ loginForm.addEventListener('submit', (e) => {
     const password = document.getElementById('password').value;
 
     auth.signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+            // Success handler: The onAuthStateChanged listener will handle the redirection.
+            // No code is needed here.
+            messageElement.innerText = "Login successful. Redirecting...";
+        })
         .catch(error => {
             let errorMessage = "An error occurred. Please try again.";
             switch (error.code) {
@@ -105,17 +115,22 @@ navButtons.forEach(button => {
         // Show the corresponding section
         const targetId = button.id.replace('nav-', '');
         document.getElementById(targetId).classList.add('active-content');
+
+        // Re-load data when switching tabs
+        if (targetId === 'users-section') {
+            loadUsers();
+        } else if (targetId === 'classes-section') {
+            loadClasses();
+            loadFacultyForClassForm();
+            loadStudentsForAnalytics();
+        } else if (targetId === 'analytics-section') {
+            loadAnalyticsData();
+            loadStudentsForAnalytics();
+        }
     });
 });
 
 // --- Data Loading and Management ---
-async function loadDashboardData() {
-    await loadUsers();
-    await loadClasses();
-    await loadFacultyForClassForm();
-    await loadStudentsForAnalytics();
-    await loadAnalyticsData();
-}
 
 // Load and display users
 async function loadUsers() {
@@ -165,9 +180,6 @@ document.getElementById('add-user-form').addEventListener('submit', async (e) =>
 async function deleteUser(uid) {
     if (confirm('Are you sure you want to delete this user?')) {
         try {
-            // Firestore doesn't allow deleting a user directly from client-side code for security.
-            // In a real-world app, you'd use a cloud function here. For this project,
-            // we'll just delete the Firestore document and the user can't log in anymore.
             await db.collection('users').doc(uid).delete();
             alert('User document deleted successfully. User will no longer be able to log in.');
             loadUsers(); // Refresh the user list
