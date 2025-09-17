@@ -1,11 +1,11 @@
 // Firebase configuration and initialization
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBRtkq7GpBLInpqTTrc1pcRvhOrYhWdlEY",
+  authDomain: "college-attendance-app-f394c.firebaseapp.com",
+  projectId: "college-attendance-app-f394c",
+  storageBucket: "college-attendance-app-f394c.firebasestorage.app",
+  messagingSenderId: "1001509576660",
+  appId: "1:1001509576660:web:3bfc16e7b8a637f3a5c041"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -361,3 +361,4 @@ document.getElementById('analytics-student-select').addEventListener('change', a
         document.getElementById('student-attendance-percentage').textContent = 'No attendance data available.';
     }
 });
+
