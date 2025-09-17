@@ -54,7 +54,7 @@ async function checkUserRole(uid) {
         const userDoc = await db.collection('users').doc(uid).get();
         if (userDoc.exists && userDoc.data().role === 'admin') {
             showDashboard();
-            loadUsers();
+            loadUsers(); // Load users for the initial active tab
         } else {
             alert('Access denied. You are not an admin.');
             auth.signOut();
@@ -80,6 +80,9 @@ loginForm.addEventListener('submit', (e) => {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+            // The onAuthStateChanged listener handles the success logic.
+        })
         .catch(error => {
             let errorMessage = "An error occurred. Please try again.";
             switch (error.code) {
@@ -111,6 +114,7 @@ navButtons.forEach(button => {
         const targetId = button.id.replace('nav-', '');
         document.getElementById(targetId).classList.add('active-content');
         
+        // Re-load data when switching tabs
         if (targetId === 'users-section') {
             loadUsers();
         } else if (targetId === 'classes-section') {
@@ -228,7 +232,7 @@ async function openEditModal(uid) {
         } else {
             editStudentInputsContainer.style.display = 'none';
         }
-        editModal.style.display = 'flex'; // Use flex to center the modal
+        editModal.style.display = 'flex';
     }
 }
 
@@ -436,4 +440,3 @@ document.getElementById('analytics-student-select').addEventListener('change', a
         document.getElementById('student-attendance-percentage').textContent = 'No attendance data available.';
     }
 });
-
