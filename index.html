@@ -27,7 +27,7 @@
         <section id="dashboard-container" class="dashboard-container" style="display: none;">
             <nav class="dashboard-nav">
                 <button id="nav-manage-users" class="nav-button active">Manage Users</button>
-                <button id="nav-manage-classes" class="nav-button">Manage Classes</button>
+                <button id="nav-manage-classes" class="nav-button">Manage Timetables and Classes</button>
                 <button id="nav-view-analytics" class="nav-button">View Analytics</button>
                 <button id="logout-btn" class="nav-button logout-button">Logout</button>
             </nav>
@@ -77,27 +77,57 @@
                 </div>
 
                 <div id="classes-section" class="section-content">
-                    <h2>Manage Classes</h2>
-                    <form id="add-class-form" class="add-form">
-                        <h3>Create New Class</h3>
-                        <input type="text" id="class-name" placeholder="Class Name (e.g., MATH 101)" required>
-                        <select id="faculty-select" required>
+                    <h2>Manage Timetables and Classes</h2>
+                    <form id="add-timetable-form" class="add-form">
+                        <h3>Add New Timetable Entry</h3>
+                        <select id="timetable-faculty-select" required>
                             <option value="">Select Faculty</option>
                         </select>
-                        <button type="submit">Create Class</button>
-                    </form>
-                    <h3>Assign Students to Classes</h3>
-                    <div id="assign-students-container" class="add-form">
-                        <select id="class-select" required>
+                        <select id="timetable-class-select" required>
                             <option value="">Select Class</option>
                         </select>
-                        <select id="student-select" multiple required>
+                        <select id="timetable-section-select" required>
+                            <option value="">Select Section</option>
+                            <option value="A">Section A</option>
+                            <option value="B">Section B</option>
+                            <option value="C">Section C</option>
+                        </select>
+                        <select id="timetable-day-select" required>
+                            <option value="">Select Day</option>
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                        </select>
+                        <input type="time" id="timetable-start-time" required>
+                        <input type="time" id="timetable-end-time" required>
+                        <button type="submit">Add Entry</button>
+                    </form>
+                    <h3>Existing Timetables</h3>
+                    <table id="timetables-table">
+                        <thead>
+                            <tr>
+                                <th>Faculty</th>
+                                <th>Class</th>
+                                <th>Section</th>
+                                <th>Day</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+
+                    <div id="assign-students-container" class="add-form">
+                        <h3>Assign Students to Classes</h3>
+                        <select id="class-assignment-select" required>
+                            <option value="">Select Class</option>
+                        </select>
+                        <select id="student-assignment-select" multiple required>
                             <option value="">Select Students (Ctrl/Cmd to select multiple)</option>
                         </select>
                         <button id="assign-students-btn" type="button">Assign Students</button>
                     </div>
-                    <h3>Existing Classes</h3>
-                    <ul id="classes-list"></ul>
                 </div>
 
                 <div id="analytics-section" class="section-content">
