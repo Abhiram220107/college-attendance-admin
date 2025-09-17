@@ -1,11 +1,11 @@
 // Firebase configuration and initialization
 const firebaseConfig = {
-    apiKey: "AIzaSyBRtkq7GpBLInpqTTrc1pcRvhOrYhWdlEY",
-    authDomain: "college-attendance-app-f394c.firebaseapp.com",
-    projectId: "college-attendance-app-f394c",
-    storageBucket: "college-attendance-app-f394c.firebasestorage.app",
-    messagingSenderId: "1001509576660",
-    appId: "1:1001509576660:web:3bfc16e7b8a637f3a5c041"
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -63,7 +63,22 @@ loginForm.addEventListener('submit', (e) => {
 
     auth.signInWithEmailAndPassword(email, password)
         .catch(error => {
-            messageElement.innerText = `Error: ${error.message}`;
+            let errorMessage = "An unknown error occurred.";
+            switch (error.code) {
+                case "auth/invalid-email":
+                    errorMessage = "Invalid email address format.";
+                    break;
+                case "auth/user-not-found":
+                case "auth/wrong-password":
+                    errorMessage = "Invalid email or password.";
+                    break;
+                case "auth/user-disabled":
+                    errorMessage = "Your account has been disabled.";
+                    break;
+                default:
+                    errorMessage = "An error occurred. Please try again.";
+            }
+            messageElement.innerText = `Error: ${errorMessage}`;
         });
 });
 
