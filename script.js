@@ -1,11 +1,13 @@
+// Firebase configuration and initialization
 const firebaseConfig = {
-  apiKey: "AIzaSyBRtkq7GpBLInpqTTrc1pcRvhOrYhWdlEY",
-  authDomain: "college-attendance-app-f394c.firebaseapp.com",
-  projectId: "college-attendance-app-f394c",
-  storageBucket: "college-attendance-app-f394c.firebasestorage.app",
-  messagingSenderId: "1001509576660",
-  appId: "1:1001509576660:web:3bfc16e7b8a637f3a5c041"
+    apiKey: "AIzaSyBRtkq7GpBLInpqTTrc1pcRvhOrYhWdlEY",
+    authDomain: "college-attendance-app-f394c.firebaseapp.com",
+    projectId: "college-attendance-app-f394c",
+    storageBucket: "college-attendance-app-f394c.firebasestorage.app",
+    messagingSenderId: "1001509576660",
+    appId: "1:1001509576660:web:3bfc16e7b8a637f3a5c041"
 };
+
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
@@ -37,7 +39,7 @@ const editStudentInputsContainer = document.getElementById('edit-student-inputs'
 const editSectionInput = document.getElementById('edit-section');
 const editYearInput = document.getElementById('edit-year');
 let currentEditingUserUid = null;
-let activeChart = null;
+let activeChart = null; // To store the Chart.js instance for proper destruction
 
 // --- Main App Logic ---
 auth.onAuthStateChanged(user => {
@@ -53,7 +55,13 @@ async function checkUserRole(uid) {
         const userDoc = await db.collection('users').doc(uid).get();
         if (userDoc.exists && userDoc.data().role === 'admin') {
             showDashboard();
-            loadUsers();
+            // Get the last active tab from local storage, default to 'users-section'
+            const lastActiveTab = localStorage.getItem('lastActiveTab') || 'users-section';
+            // Trigger a click on the corresponding navigation button
+            const navButtonToClick = document.getElementById(`nav-${lastActiveTab}`);
+            if (navButtonToClick) {
+                navButtonToClick.click();
+            }
         } else {
             alert('Access denied. You are not an admin.');
             auth.signOut();
@@ -79,8 +87,6 @@ loginForm.addEventListener('submit', (e) => {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     auth.signInWithEmailAndPassword(email, password)
-        .then(() => {
-        })
         .catch(error => {
             let errorMessage = "An error occurred. Please try again.";
             switch (error.code) {
@@ -112,6 +118,9 @@ navButtons.forEach(button => {
         const targetId = button.id.replace('nav-', '');
         document.getElementById(targetId).classList.add('active-content');
         
+        // Save the active tab to local storage
+        localStorage.setItem('lastActiveTab', targetId);
+
         if (targetId === 'users-section') {
             loadUsers();
         } else if (targetId === 'classes-section') {
@@ -149,29 +158,54 @@ editRoleSelect.addEventListener('change', () => {
 });
 
 async function loadUsers() {
-    const usersTableBody = document.querySelector('#users-table tbody');
-    usersTableBody.innerHTML = '';
+    // Clear all tables before loading
+    const adminsTableBody = document.querySelector('#admins-table tbody');
+    const facultyTableBody = document.querySelector('#faculty-table tbody');
+    const studentsTableBody = document.querySelector('#students-table tbody');
+    adminsTableBody.innerHTML = '';
+    facultyTableBody.innerHTML = '';
+    studentsTableBody.innerHTML = '';
+
     try {
         const users = await db.collection('users').get();
         users.forEach(doc => {
             const user = doc.data();
             const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${user.name || 'N/A'}</td>
-                <td>${user.email || 'N/A'}</td>
-                <td>${user.role || 'N/A'}</td>
-                <td>${user.section ? user.section : 'N/A'}</td>
-                <td>${user.year ? user.year : 'N/A'}</td>
-                <td class="actions-buttons">
-                    <button class="edit-btn" data-uid="${doc.id}">Edit</button>
-                    <button onclick="deleteUser('${doc.id}')">Delete</button>
-                </td>
-            `;
-            usersTableBody.appendChild(row);
+            const actions = `<button class="edit-btn" data-uid="${doc.id}">Edit</button>
+                             <button onclick="deleteUser('${doc.id}')">Delete</button>`;
+            
+            if (user.role === 'admin') {
+                row.innerHTML = `
+                    <td>${user.name || 'N/A'}</td>
+                    <td>${user.email || 'N/A'}</td>
+                    <td class="actions-buttons">${actions}</td>
+                `;
+                adminsTableBody.appendChild(row);
+            } else if (user.role === 'faculty') {
+                row.innerHTML = `
+                    <td>${user.name || 'N/A'}</td>
+                    <td>${user.email || 'N/A'}</td>
+                    <td class="actions-buttons">${actions}</td>
+                `;
+                facultyTableBody.appendChild(row);
+            } else if (user.role === 'student') {
+                row.innerHTML = `
+                    <td>${user.name || 'N/A'}</td>
+                    <td>${user.email || 'N/A'}</td>
+                    <td>${user.section ? user.section : 'N/A'}</td>
+                    <td>${user.year ? user.year : 'N/A'}</td>
+                    <td class="actions-buttons">${actions}</td>
+                `;
+                studentsTableBody.appendChild(row);
+            }
         });
     } catch (error) {
         console.error("Error fetching users: ", error);
-        usersTableBody.innerHTML = '<tr><td colspan="6">Error loading users. Check console for details.</td></tr>';
+        // Display error messages in all tables
+        const errorRow = `<tr><td colspan="6">Error loading users. Check console for details.</td></tr>`;
+        adminsTableBody.innerHTML = errorRow;
+        facultyTableBody.innerHTML = errorRow;
+        studentsTableBody.innerHTML = errorRow;
     }
 }
 
@@ -299,14 +333,21 @@ async function loadStudentsForClassAssignment() {
 }
 
 async function loadClasses() {
+    const classesList = document.getElementById('classes-list');
     const classSelect = document.getElementById('timetable-class-select');
     const classAssignmentSelect = document.getElementById('class-assignment-select');
+
+    classesList.innerHTML = '';
     classSelect.innerHTML = '<option value="">Select Class</option>';
     classAssignmentSelect.innerHTML = '<option value="">Select Class</option>';
 
     const classDocs = await db.collection('classes').get();
     classDocs.forEach(doc => {
         const classData = doc.data();
+        const li = document.createElement('li');
+        li.textContent = `${classData.class_name} (Faculty: ${classData.faculty_id})`;
+        classesList.appendChild(li);
+
         const option = document.createElement('option');
         option.value = doc.id;
         option.textContent = classData.class_name;
@@ -343,6 +384,26 @@ async function loadTimetables() {
     }
 }
 
+// Add a new class
+document.getElementById('add-class-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const className = document.getElementById('class-name').value;
+    const facultyId = document.getElementById('faculty-select').value;
+
+    try {
+        await db.collection('classes').add({
+            class_name: className,
+            faculty_id: facultyId,
+            student_ids: []
+        });
+        alert('Class created successfully!');
+        document.getElementById('add-class-form').reset();
+        loadClasses();
+    } catch (error) {
+        alert(error.message);
+    }
+});
+
 document.getElementById('add-timetable-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const facultyId = document.getElementById('timetable-faculty-select').value;
@@ -371,10 +432,13 @@ document.getElementById('add-timetable-form').addEventListener('submit', async (
     }
 });
 
+// Assign students to a class
 document.getElementById('assign-students-btn').addEventListener('click', async () => {
     const classId = document.getElementById('class-assignment-select').value;
     const studentSelect = document.getElementById('student-assignment-select');
-    const selectedStudentIds = Array.from(studentSelect.options).filter(option => option.selected).map(option => option.value);
+    const selectedStudentIds = Array.from(studentSelect.options)
+                                   .filter(option => option.selected)
+                                   .map(option => option.value);
 
     if (classId && selectedStudentIds.length > 0) {
         try {
