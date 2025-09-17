@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -26,9 +26,9 @@
 
         <section id="dashboard-container" class="dashboard-container" style="display: none;">
             <nav class="dashboard-nav">
-                <button id="nav-manage-users" class="nav-button active">Manage Users</button>
-                <button id="nav-manage-classes" class="nav-button">Manage Classes</button>
-                <button id="nav-view-analytics" class="nav-button">View Analytics</button>
+                <button id="nav-users-section" class="nav-button active">Manage Users</button>
+                <button id="nav-classes-section" class="nav-button">Manage Classes</button>
+                <button id="nav-analytics-section" class="nav-button">View Analytics</button>
                 <button id="logout-btn" class="nav-button logout-button">Logout</button>
             </nav>
 
@@ -48,13 +48,7 @@
                         </select>
                         <div id="student-specific-inputs" style="display: none;">
                             <input type="text" id="add-section" placeholder="Section" required>
-                            <select id="add-year" required>
-                                <option value="">Select Year</option>
-                                <option value="I">I</option>
-                                <option value="II">II</option>
-                                <option value="III">III</option>
-                                <option value="IV">IV</option>
-                            </select>
+                            <input type="number" id="add-year" placeholder="Year" required>
                         </div>
                         <button type="submit">Add User</button>
                     </form>
@@ -77,25 +71,60 @@
                 </div>
 
                 <div id="classes-section" class="section-content">
-                    <h2>Manage Classes</h2>
-                    <form id="add-class-form" class="add-form">
-                        <h3>Create New Class</h3>
-                        <input type="text" id="class-name" placeholder="Class Name (e.g., MATH 101)" required>
+                    <h2>Manage Timetables and Classes</h2>
+                    <form id="add-timetable-form" class="add-form">
+                        <h3>Add New Timetable Entry</h3>
                         <select id="faculty-select" required>
                             <option value="">Select Faculty</option>
                         </select>
-                        <button type="submit">Create Class</button>
-                    </form>
-                    <h3>Assign Students to Classes</h3>
-                    <div id="assign-students-container" class="add-form">
                         <select id="class-select" required>
                             <option value="">Select Class</option>
                         </select>
-                        <select id="student-select" multiple required>
+                        <select id="section-select" required>
+                            <option value="">Select Section</option>
+                            <option value="A">Section A</option>
+                            <option value="B">Section B</option>
+                            <option value="C">Section C</option>
+                        </select>
+                        <select id="day-select" required>
+                            <option value="">Select Day</option>
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                        </select>
+                        <input type="time" id="start-time" required>
+                        <input type="time" id="end-time" required>
+                        <button type="submit">Add Entry</button>
+                    </form>
+
+                    <h3>Existing Timetables</h3>
+                    <table id="timetables-table">
+                        <thead>
+                            <tr>
+                                <th>Faculty</th>
+                                <th>Class</th>
+                                <th>Section</th>
+                                <th>Day</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+
+                    <div id="assign-students-container" class="add-form">
+                        <h3>Assign Students to Classes</h3>
+                        <select id="class-assignment-select" required>
+                            <option value="">Select Class</option>
+                        </select>
+                        <select id="student-assignment-select" multiple required>
                             <option value="">Select Students (Ctrl/Cmd to select multiple)</option>
                         </select>
                         <button id="assign-students-btn" type="button">Assign Students</button>
                     </div>
+
                     <h3>Existing Classes</h3>
                     <ul id="classes-list"></ul>
                 </div>
@@ -120,7 +149,7 @@
         </section>
     </main>
     
-    <div id="edit-modal" class="modal-container" style="display: none;">
+    <div id="edit-modal" class="modal-container">
         <div class="modal-content">
             <span class="close-btn" id="close-modal">&times;</span>
             <h2>Edit User</h2>
@@ -135,19 +164,13 @@
                 </select>
                 <div id="edit-student-inputs" style="display: none;">
                     <input type="text" id="edit-section" placeholder="Section">
-                    <select id="edit-year" required>
-                        <option value="">Select Year</option>
-                        <option value="I">I</option>
-                        <option value="II">II</option>
-                        <option value="III">III</option>
-                        <option value="IV">IV</option>
-                    </select>
+                    <input type="number" id="edit-year" placeholder="Year">
                 </div>
                 <button type="submit">Save Changes</button>
             </form>
         </div>
     </div>
-
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
