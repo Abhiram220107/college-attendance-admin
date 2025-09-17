@@ -1,12 +1,13 @@
 // Firebase configuration and initialization
 const firebaseConfig = {
-  apiKey: "AIzaSyBRtkq7GpBLInpqTTrc1pcRvhOrYhWdlEY",
-  authDomain: "college-attendance-app-f394c.firebaseapp.com",
-  projectId: "college-attendance-app-f394c",
-  storageBucket: "college-attendance-app-f394c.firebasestorage.app",
-  messagingSenderId: "1001509576660",
-  appId: "1:1001509576660:web:3bfc16e7b8a637f3a5c041"
+    apiKey: "AIzaSyBRtkq7GpBLInpqTTrc1pcRvhOrYhWdlEY",
+    authDomain: "college-attendance-app-f394c.firebaseapp.com",
+    projectId: "college-attendance-app-f394c",
+    storageBucket: "college-attendance-app-f394c.firebasestorage.app",
+    messagingSenderId: "1001509576660",
+    appId: "1:1001509576660:web:3bfc16e7b8a637f3a5c041"
 };
+
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
@@ -38,7 +39,7 @@ const editStudentInputsContainer = document.getElementById('edit-student-inputs'
 const editSectionInput = document.getElementById('edit-section');
 const editYearInput = document.getElementById('edit-year');
 let currentEditingUserUid = null;
-let activeChart = null;
+let activeChart = null; // To store the Chart.js instance for proper destruction
 
 // --- Main App Logic ---
 auth.onAuthStateChanged(user => {
@@ -113,7 +114,7 @@ navButtons.forEach(button => {
         sections.forEach(section => section.classList.remove('active-content'));
         const targetId = button.id.replace('nav-', '');
         document.getElementById(targetId).classList.add('active-content');
-        
+
         if (targetId === 'users-section') {
             loadUsers();
         } else if (targetId === 'classes-section') {
@@ -195,7 +196,6 @@ document.getElementById('add-user-form').addEventListener('submit', async (e) =>
             section: section,
             year: year
         });
-        // The onAuthStateChanged listener will now handle the redirection properly
         alert('User added successfully!');
         document.getElementById('add-user-form').reset();
         studentInputsContainer.style.display = 'none';
@@ -394,6 +394,7 @@ document.getElementById('assign-students-btn').addEventListener('click', async (
     }
 });
 
+// --- Analytics Logic ---
 async function loadAnalyticsData() {
     if (activeChart) {
         activeChart.destroy();
