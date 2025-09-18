@@ -27,11 +27,11 @@
         <section id="dashboard-container" class="dashboard-container" style="display: none;">
             <nav class="dashboard-nav">
                 <button id="nav-users-section" class="nav-button active">Manage Users</button>
-                <button id="nav-classes-section" class="nav-button">Manage Classes</button>
+                <button id="nav-subjects-section" class="nav-button">Manage Subjects</button>
+                <button id="nav-classes-section" class="nav-button">Manage Timetables</button>
                 <button id="nav-analytics-section" class="nav-button">View Analytics</button>
                 <button id="logout-btn" class="nav-button logout-button">Logout</button>
             </nav>
-
             <div class="content-area">
                 <div id="users-section" class="section-content active-content">
                     <h2>Manage Users</h2>
@@ -55,10 +55,17 @@
                                 <option value="III">III</option>
                                 <option value="IV">IV</option>
                             </select>
+                            <div class="form-group">
+                                <label for="assign-classes-select">Assign to Classes</label>
+                                <select id="assign-classes-select" multiple></select>
+                            </div>
+                        </div>
+                        <div id="add-faculty-inputs" style="display: none;">
+                            <label for="add-subjects">Assigned Subjects:</label>
+                            <select id="add-subjects" multiple></select>
                         </div>
                         <button type="submit">Add User</button>
                     </form>
-
                     <div class="user-list">
                         <h3>Admins</h3>
                         <table id="admins-table">
@@ -72,7 +79,6 @@
                             <tbody></tbody>
                         </table>
                     </div>
-
                     <div class="user-list">
                         <h3>Faculty</h3>
                         <table id="faculty-table">
@@ -80,13 +86,13 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Email</th>
+                                    <th>Subjects</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
                         </table>
                     </div>
-
                     <div class="user-list">
                         <h3>Students</h3>
                         <table id="students-table">
@@ -96,6 +102,30 @@
                                     <th>Email</th>
                                     <th>Section</th>
                                     <th>Year</th>
+                                    <th>Classes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="subjects-section" class="section-content">
+                    <h2>Manage Subjects</h2>
+                    <form id="add-subject-form" class="add-form">
+                        <h3>Add New Subject</h3>
+                        <input type="text" id="subject-name" placeholder="Subject Name" required>
+                        <input type="text" id="subject-code" placeholder="Subject Code" required>
+                        <button type="submit">Add Subject</button>
+                    </form>
+                    <div class="subject-list">
+                        <h3>Existing Subjects</h3>
+                        <table id="subjects-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject Name</th>
+                                    <th>Subject Code</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -105,62 +135,89 @@
                 </div>
 
                 <div id="classes-section" class="section-content">
-                    <h2>Manage Timetables and Classes</h2>
-                    <form id="add-timetable-form" class="add-form">
-                        <h3>Add New Timetable Entry</h3>
-                        <select id="timetable-faculty-select" required>
-                            <option value="">Select Faculty</option>
-                        </select>
-                        <select id="timetable-class-select" required>
-                            <option value="">Select Class</option>
-                        </select>
-                        <select id="timetable-section-select" required>
-                            <option value="">Select Section</option>
-                            <option value="A">Section A</option>
-                            <option value="B">Section B</option>
-                            <option value="C">Section C</option>
-                        </select>
-                        <select id="timetable-day-select" required>
-                            <option value="">Select Day</option>
-                            <option value="Monday">Monday</option>
-                            <option value="Tuesday">Tuesday</option>
-                            <option value="Wednesday">Wednesday</option>
-                            <option value="Thursday">Thursday</option>
-                            <option value="Friday">Friday</option>
-                        </select>
-                        <input type="time" id="timetable-start-time" required>
-                        <input type="time" id="timetable-end-time" required>
-                        <button type="submit">Add Entry</button>
-                    </form>
-
-                    <h3>Existing Timetables</h3>
-                    <table id="timetables-table">
-                        <thead>
-                            <tr>
-                                <th>Faculty</th>
-                                <th>Class</th>
-                                <th>Section</th>
-                                <th>Day</th>
-                                <th>Time</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
-
-                    <div id="assign-students-container" class="add-form">
-                        <h3>Assign Students to Classes</h3>
-                        <select id="class-assignment-select" required>
-                            <option value="">Select Class</option>
-                        </select>
-                        <select id="student-assignment-select" multiple required>
-                            <option value="">Select Students (Ctrl/Cmd to select multiple)</option>
-                        </select>
-                        <button id="assign-students-btn" type="button">Assign Students</button>
+                    <h2>Manage Timetables</h2>
+                    <div class="split-container">
+                        <form id="add-class-form" class="add-form">
+                            <h3>Create New Class</h3>
+                            <div class="form-group">
+                                <label for="new-class-name">Class Name</label>
+                                <input type="text" id="new-class-name" placeholder="e.g., B.Tech CSE 2025" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="class-faculty-select">Assign Faculty</label>
+                                <select id="class-faculty-select" required>
+                                    <option value="">Select Faculty</option>
+                                </select>
+                            </div>
+                            <button type="submit">Create Class</button>
+                        </form>
+                        <form id="add-timetable-form" class="add-form">
+                            <h3>Add Timetable Entry</h3>
+                            <div class="form-group">
+                                <label for="timetable-class-select">Select Class</label>
+                                <select id="timetable-class-select" required>
+                                    <option value="">Select Class</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="timetable-subject-select">Select Subject</label>
+                                <select id="timetable-subject-select" required>
+                                    <option value="">Select Subject</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="timetable-faculty-display">Assigned Faculty</label>
+                                <select id="timetable-faculty-display" required>
+                                    <option value="">Select Faculty</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="timetable-day-select">Day</label>
+                                <select id="timetable-day-select" required>
+                                    <option value="">Select Day</option>
+                                    <option value="Monday">Monday</option>
+                                    <option value="Tuesday">Tuesday</option>
+                                    <option value="Wednesday">Wednesday</option>
+                                    <option value="Thursday">Thursday</option>
+                                    <option value="Friday">Friday</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="timetable-start-time">Start Time</label>
+                                <select id="timetable-start-time" required>
+                                    <option value="">Select Time</option>
+                                    <option value="09:00">09:00</option>
+                                    <option value="10:00">10:00</option>
+                                    <option value="11:00">11:00</option>
+                                    <option value="12:00">12:00</option>
+                                    <option value="13:00">13:00</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="timetable-end-time">End Time</label>
+                                <select id="timetable-end-time" required>
+                                    <option value="">Select Time</option>
+                                    <option value="09:00">09:00</option>
+                                    <option value="10:00">10:00</option>
+                                    <option value="11:00">11:00</option>
+                                    <option value="12:00">12:00</option>
+                                    <option value="13:00">13:00</option>
+                                </select>
+                            </div>
+                            <button type="submit">Add Entry</button>
+                        </form>
                     </div>
-
-                    <h3>Existing Classes</h3>
-                    <ul id="classes-list"></ul>
+                    
+                    <div class="timetable-display-container">
+                        <h3>View Existing Timetables</h3>
+                        <div class="timetable-actions">
+                            <select id="display-class-select" class="display-select">
+                                <option value="">Select Class to View</option>
+                            </select>
+                        </div>
+                        <div id="timetable-grid" class="timetable-grid"></div>
+                        <div id="no-timetable-message" class="message" style="display: none;">No timetable entries for this class.</div>
+                    </div>
                 </div>
 
                 <div id="analytics-section" class="section-content">
@@ -205,6 +262,14 @@
                         <option value="III">III</option>
                         <option value="IV">IV</option>
                     </select>
+                    <div class="form-group">
+                        <label for="edit-assign-classes-select">Assign to Classes</label>
+                        <select id="edit-assign-classes-select" multiple></select>
+                    </div>
+                </div>
+                <div id="edit-faculty-inputs" style="display: none;">
+                    <label for="edit-subjects">Assigned Subjects:</label>
+                    <select id="edit-subjects" multiple></select>
                 </div>
                 <button type="submit">Save Changes</button>
             </form>
