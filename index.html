@@ -28,9 +28,33 @@
             <nav class="dashboard-nav">
                 <button id="nav-users-section" class="nav-button active">Manage Users</button>
                 <button id="nav-classes-section" class="nav-button">Manage Classes</button>
+                <button id="nav-subjects-section" class="nav-button">Manage Subjects</button>
                 <button id="nav-analytics-section" class="nav-button">View Analytics</button>
                 <button id="logout-btn" class="nav-button logout-button">Logout</button>
             </nav>
+                <div id="subjects-section" class="section-content">
+                    <h2>Manage Subjects</h2>
+                    <form id="add-subject-form" class="add-form">
+                        <h3>Add New Subject</h3>
+                        <input type="text" id="subject-name" placeholder="Subject Name" required>
+                        <input type="text" id="subject-code" placeholder="Subject Code" required>
+                        <button type="submit">Add Subject</button>
+                    </form>
+                    <div class="subject-list">
+                        <h3>Existing Subjects</h3>
+                        <table id="subjects-table">
+                            <thead>
+                                <tr>
+                                    <th>Subject Name</th>
+                                    <th>Subject Code</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+                
 
             <div class="content-area">
                 <div id="users-section" class="section-content active-content">
@@ -56,6 +80,11 @@
                                 <option value="IV">IV</option>
                             </select>
                         </div>
+                        <div id="add-faculty-inputs" style="display: none;">
+                            <label for="add-subjects">Assigned Subjects:</label>
+                            <select id="add-subjects" multiple>
+                                </select>
+                        </div>
                         <button type="submit">Add User</button>
                     </form>
 
@@ -80,7 +109,7 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Email</th>
-                                    <th>Actions</th>
+                                    <th>Subjects</th><th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -204,6 +233,11 @@
                         <option value="II">II</option>
                         <option value="III">III</option>
                         <option value="IV">IV</option>
+                    </select>
+                </div>
+                <div id="edit-faculty-inputs" style="display: none;">
+                    <label for="edit-subjects">Assigned Subjects:</label>
+                    <select id="edit-subjects" multiple>
                     </select>
                 </div>
                 <button type="submit">Save Changes</button>
