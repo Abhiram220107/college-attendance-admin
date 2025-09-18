@@ -314,7 +314,10 @@ editForm.addEventListener('submit', async (e) => {
         await db.collection('users').doc(currentEditingUserUid).update(updatedData);
         alert('User updated successfully!');
         editModal.style.display = 'none';
+        
+        // Call loadUsers() here to refresh the tables.
         loadUsers();
+
     } catch (error) {
         alert(error.message);
     }
@@ -576,3 +579,4 @@ document.getElementById('analytics-student-select').addEventListener('change', a
         studentAttendancePercentageP.textContent = 'No attendance data available.';
     }
 });
+
