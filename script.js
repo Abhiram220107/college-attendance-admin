@@ -42,9 +42,13 @@ let currentEditingUserUid = null;
 let activeChart = null; // To store the Chart.js instance for proper destruction
 
 // --- Main App Logic ---
+let isAddingUser = false;
 auth.onAuthStateChanged(user => {
     if (user) {
-        checkUserRole(user.uid);
+        // Only run the role check if we are not in the middle of adding a new user
+        if (!isAddingUser) {
+            checkUserRole(user.uid);
+        }
     } else {
         showLoginScreen();
     }
@@ -147,33 +151,42 @@ roleSelect.addEventListener('change', () => {
     }
 });
 
+const editYearSelect = document.getElementById('edit-year'); // New line to get the element
+
 editRoleSelect.addEventListener('change', () => {
     if (editRoleSelect.value === 'student') {
         editStudentInputsContainer.style.display = 'block';
     } else {
         editStudentInputsContainer.style.display = 'none';
         editSectionInput.value = '';
-        editYearInput.value = '';
+        editYearSelect.value = ''; // Corrected line to clear the select
     }
 });
 
-async function loadUsers() {
-    // Clear all tables before loading
+// Function to load all users with a real-time listener
+function loadUsers() {
     const adminsTableBody = document.querySelector('#admins-table tbody');
     const facultyTableBody = document.querySelector('#faculty-table tbody');
     const studentsTableBody = document.querySelector('#students-table tbody');
+
+    // Clear tables before a new data sync
     adminsTableBody.innerHTML = '';
     facultyTableBody.innerHTML = '';
     studentsTableBody.innerHTML = '';
 
-    try {
-        const users = await db.collection('users').get();
-        users.forEach(doc => {
+    // Set up the real-time listener
+    db.collection('users').onSnapshot(snapshot => {
+        // Clear tables to prevent duplicate entries on each update
+        adminsTableBody.innerHTML = '';
+        facultyTableBody.innerHTML = '';
+        studentsTableBody.innerHTML = '';
+
+        snapshot.forEach(doc => {
             const user = doc.data();
             const row = document.createElement('tr');
             const actions = `<button class="edit-btn" data-uid="${doc.id}">Edit</button>
                              <button onclick="deleteUser('${doc.id}')">Delete</button>`;
-            
+
             if (user.role === 'admin') {
                 row.innerHTML = `
                     <td>${user.name || 'N/A'}</td>
@@ -199,14 +212,13 @@ async function loadUsers() {
                 studentsTableBody.appendChild(row);
             }
         });
-    } catch (error) {
+    }, error => {
         console.error("Error fetching users: ", error);
-        // Display error messages in all tables
         const errorRow = `<tr><td colspan="6">Error loading users. Check console for details.</td></tr>`;
         adminsTableBody.innerHTML = errorRow;
         facultyTableBody.innerHTML = errorRow;
         studentsTableBody.innerHTML = errorRow;
-    }
+    });
 }
 
 document.getElementById('add-user-form').addEventListener('submit', async (e) => {
@@ -219,6 +231,8 @@ document.getElementById('add-user-form').addEventListener('submit', async (e) =>
     const year = (role === 'student') ? addYearInput.value : null;
 
     try {
+        isAddingUser = true; // Set the flag
+
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         await db.collection('users').doc(userCredential.user.uid).set({
             name: name,
@@ -227,12 +241,16 @@ document.getElementById('add-user-form').addEventListener('submit', async (e) =>
             section: section,
             year: year
         });
+        
         alert('User added successfully!');
         document.getElementById('add-user-form').reset();
         studentInputsContainer.style.display = 'none';
+        
         loadUsers();
     } catch (error) {
         alert(error.message);
+    } finally {
+        isAddingUser = false; // Always unset the flag
     }
 });
 
@@ -248,12 +266,14 @@ async function deleteUser(uid) {
     }
 }
 
-document.getElementById('users-table').addEventListener('click', (e) => {
+document.addEventListener('click', (e) => {
     if (e.target.classList.contains('edit-btn')) {
         const uid = e.target.getAttribute('data-uid');
         openEditModal(uid);
     }
 });
+
+// ... (rest of your script)
 
 async function openEditModal(uid) {
     const userDoc = await db.collection('users').doc(uid).get();
@@ -264,13 +284,17 @@ async function openEditModal(uid) {
         editEmailInput.value = user.email;
         editRoleSelect.value = user.role;
         editSectionInput.value = user.section || '';
-        editYearInput.value = user.year || '';
         
+        // Check if the role is 'student' to show/hide the correct fields
         if (user.role === 'student') {
             editStudentInputsContainer.style.display = 'block';
+            
+            // Set the selected year in the new dropdown
+            editYearSelect.value = user.year || ''; 
         } else {
             editStudentInputsContainer.style.display = 'none';
         }
+        
         editModal.style.display = 'flex';
     }
 }
