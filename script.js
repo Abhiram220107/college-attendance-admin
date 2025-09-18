@@ -25,8 +25,10 @@ const sections = document.querySelectorAll('.section-content');
 // Dynamic form elements for adding users
 const roleSelect = document.getElementById('add-role');
 const studentInputsContainer = document.getElementById('student-specific-inputs');
+const addFacultyInputsContainer = document.getElementById('add-faculty-inputs');
 const addSectionInput = document.getElementById('add-section');
 const addYearInput = document.getElementById('add-year');
+const addSubjectsSelect = document.getElementById('add-subjects'); // Corrected ID
 
 // Edit Modal Elements
 const editModal = document.getElementById('edit-modal');
@@ -36,16 +38,17 @@ const editNameInput = document.getElementById('edit-name');
 const editEmailInput = document.getElementById('edit-email');
 const editRoleSelect = document.getElementById('edit-role');
 const editStudentInputsContainer = document.getElementById('edit-student-inputs');
+const editFacultyInputsContainer = document.getElementById('edit-faculty-inputs'); // Corrected to match HTML
 const editSectionInput = document.getElementById('edit-section');
-const editYearInput = document.getElementById('edit-year');
+const editYearSelect = document.getElementById('edit-year');
+const editSubjectsSelect = document.getElementById('edit-subjects'); // Corrected ID
 let currentEditingUserUid = null;
-let activeChart = null; // To store the Chart.js instance for proper destruction
+let activeChart = null;
 
 // --- Main App Logic ---
 let isAddingUser = false;
 auth.onAuthStateChanged(user => {
     if (user) {
-        // Only run the role check if we are not in the middle of adding a new user
         if (!isAddingUser) {
             checkUserRole(user.uid);
         }
@@ -59,9 +62,7 @@ async function checkUserRole(uid) {
         const userDoc = await db.collection('users').doc(uid).get();
         if (userDoc.exists && userDoc.data().role === 'admin') {
             showDashboard();
-            // Get the last active tab from local storage, default to 'users-section'
             const lastActiveTab = localStorage.getItem('lastActiveTab') || 'users-section';
-            // Trigger a click on the corresponding navigation button
             const navButtonToClick = document.getElementById(`nav-${lastActiveTab}`);
             if (navButtonToClick) {
                 navButtonToClick.click();
@@ -121,12 +122,12 @@ navButtons.forEach(button => {
         sections.forEach(section => section.classList.remove('active-content'));
         const targetId = button.id.replace('nav-', '');
         document.getElementById(targetId).classList.add('active-content');
-        
-        // Save the active tab to local storage
         localStorage.setItem('lastActiveTab', targetId);
 
         if (targetId === 'users-section') {
             loadUsers();
+        } else if (targetId === 'subjects-section') {
+            loadSubjects();
         } else if (targetId === 'classes-section') {
             loadClassesAndTimetables();
         } else if (targetId === 'analytics-section') {
@@ -138,45 +139,79 @@ navButtons.forEach(button => {
 
 // --- User Management ---
 roleSelect.addEventListener('change', () => {
+    studentInputsContainer.style.display = 'none';
+    addFacultyInputsContainer.style.display = 'none';
+    addSectionInput.required = false;
+    addYearInput.required = false;
+
     if (roleSelect.value === 'student') {
         studentInputsContainer.style.display = 'block';
         addSectionInput.required = true;
         addYearInput.required = true;
-    } else {
-        studentInputsContainer.style.display = 'none';
-        addSectionInput.required = false;
-        addYearInput.required = false;
-        addSectionInput.value = '';
-        addYearInput.value = '';
+    } else if (roleSelect.value === 'faculty') {
+        addFacultyInputsContainer.style.display = 'block';
+        loadSubjectsForAddFaculty();
     }
 });
 
-const editYearSelect = document.getElementById('edit-year'); // New line to get the element
+async function loadSubjectsForAddFaculty() {
+    addSubjectsSelect.innerHTML = '';
+    const subjectsSnapshot = await db.collection('subjects').get();
+    subjectsSnapshot.forEach(doc => {
+        const subject = doc.data();
+        const option = document.createElement('option');
+        option.value = doc.id;
+        option.textContent = subject.subject_name;
+        addSubjectsSelect.appendChild(option);
+    });
+}
 
-editRoleSelect.addEventListener('change', () => {
+// Corrected editRoleSelect event listener
+editRoleSelect.addEventListener('change', async () => {
+    // Hide all role-specific inputs initially
+    editStudentInputsContainer.style.display = 'none';
+    facultyInputsContainer.style.display = 'none';
+
+    // Remove the 'required' attribute from all optional inputs
+    editSectionInput.removeAttribute('required');
+    editYearSelect.removeAttribute('required');
+    editSubjectsSelect.removeAttribute('required');
+
     if (editRoleSelect.value === 'student') {
         editStudentInputsContainer.style.display = 'block';
-    } else {
-        editStudentInputsContainer.style.display = 'none';
-        editSectionInput.value = '';
-        editYearSelect.value = ''; // Corrected line to clear the select
+        // Add the 'required' attribute back for student-specific fields
+        editSectionInput.setAttribute('required', 'true');
+        editYearSelect.setAttribute('required', 'true');
+    } else if (editRoleSelect.value === 'faculty') {
+        facultyInputsContainer.style.display = 'block';
+        // Add the 'required' attribute back for faculty-specific fields
+        editSubjectsSelect.setAttribute('required', 'true');
+        // Fetch and load subjects for the currently edited faculty
+        const userDoc = await db.collection('users').doc(currentEditingUserUid).get();
+        if (userDoc.exists) {
+            const user = userDoc.data();
+            await loadSubjectsForFaculty(user.subjects_taught || []);
+        }
+    } else { // admin
+        // No fields are required for the admin role
     }
 });
 
-// Function to load all users with a real-time listener
+
+// Load all users with a real-time listener
 function loadUsers() {
     const adminsTableBody = document.querySelector('#admins-table tbody');
     const facultyTableBody = document.querySelector('#faculty-table tbody');
     const studentsTableBody = document.querySelector('#students-table tbody');
 
-    // Clear tables before a new data sync
-    adminsTableBody.innerHTML = '';
-    facultyTableBody.innerHTML = '';
-    studentsTableBody.innerHTML = '';
+    const subjectsMap = {};
+    db.collection('subjects').get().then(snapshot => {
+        snapshot.forEach(doc => {
+            subjectsMap[doc.id] = doc.data().subject_name;
+        });
+    });
 
-    // Set up the real-time listener
     db.collection('users').onSnapshot(snapshot => {
-        // Clear tables to prevent duplicate entries on each update
         adminsTableBody.innerHTML = '';
         facultyTableBody.innerHTML = '';
         studentsTableBody.innerHTML = '';
@@ -195,10 +230,13 @@ function loadUsers() {
                 `;
                 adminsTableBody.appendChild(row);
             } else if (user.role === 'faculty') {
+                const subjects = user.subjects_taught || [];
+                const subjectNames = subjects.map(id => subjectsMap[id] || 'Unknown Subject').join(', ');
+                
                 row.innerHTML = `
                     <td>${user.name || 'N/A'}</td>
                     <td>${user.email || 'N/A'}</td>
-                    <td class="actions-buttons">${actions}</td>
+                    <td>${subjectNames || 'N/A'}</td> <td class="actions-buttons">${actions}</td>
                 `;
                 facultyTableBody.appendChild(row);
             } else if (user.role === 'student') {
@@ -221,36 +259,101 @@ function loadUsers() {
     });
 }
 
+function loadSubjects() {
+    const subjectsTableBody = document.querySelector('#subjects-table tbody');
+    subjectsTableBody.innerHTML = '';
+
+    db.collection('subjects').onSnapshot(snapshot => {
+        subjectsTableBody.innerHTML = '';
+        snapshot.forEach(doc => {
+            const subject = doc.data();
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${subject.subject_name}</td>
+                <td>${subject.subject_code}</td>
+                <td class="actions-buttons">
+                    <button class="delete-subject-btn" data-id="${doc.id}">Delete</button>
+                </td>
+            `;
+            subjectsTableBody.appendChild(row);
+        });
+    });
+}
+
+document.getElementById('add-subject-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const subjectName = document.getElementById('subject-name').value;
+    const subjectCode = document.getElementById('subject-code').value;
+
+    try {
+        await db.collection('subjects').add({
+            subject_name: subjectName,
+            subject_code: subjectCode,
+        });
+        alert('Subject added successfully!');
+        document.getElementById('add-subject-form').reset();
+    } catch (error) {
+        alert("Error adding subject: " + error.message);
+    }
+});
+
+document.addEventListener('click', async (e) => {
+    if (e.target.classList.contains('delete-subject-btn')) {
+        const subjectId = e.target.getAttribute('data-id');
+        if (confirm('Are you sure you want to delete this subject?')) {
+            try {
+                await db.collection('subjects').doc(subjectId).delete();
+                alert('Subject deleted successfully.');
+            } catch (error) {
+                alert("Error deleting subject: " + error.message);
+            }
+        }
+    }
+});
+
+// The corrected add user form logic
 document.getElementById('add-user-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('add-email').value;
     const password = document.getElementById('add-password').value;
     const name = document.getElementById('add-name').value;
     const role = document.getElementById('add-role').value;
-    const section = (role === 'student') ? addSectionInput.value : null;
-    const year = (role === 'student') ? addYearInput.value : null;
+    
+    let userProfileData = {
+        name: name,
+        email: email,
+        role: role
+    };
+
+    if (role === 'student') {
+        userProfileData.section = addSectionInput.value;
+        userProfileData.year = addYearInput.value;
+    } else if (role === 'faculty') {
+        const selectedSubjects = Array.from(addSubjectsSelect.options)
+            .filter(option => option.selected)
+            .map(option => option.value);
+
+        if (selectedSubjects.length === 0) {
+            alert('Please select at least one subject for the faculty member.');
+            return;
+        }
+
+        userProfileData.subjects_taught = selectedSubjects;
+    }
 
     try {
-        isAddingUser = true; // Set the flag
-
+        isAddingUser = true;
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        await db.collection('users').doc(userCredential.user.uid).set({
-            name: name,
-            email: email,
-            role: role,
-            section: section,
-            year: year
-        });
-        
+        await db.collection('users').doc(userCredential.user.uid).set(userProfileData);
         alert('User added successfully!');
         document.getElementById('add-user-form').reset();
-        studentInputsContainer.style.display = 'none';
-        
+        document.getElementById('student-specific-inputs').style.display = 'none';
+        addFacultyInputsContainer.style.display = 'none';
         loadUsers();
     } catch (error) {
         alert(error.message);
     } finally {
-        isAddingUser = false; // Always unset the flag
+        isAddingUser = false;
     }
 });
 
@@ -273,8 +376,6 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// ... (rest of your script)
-
 async function openEditModal(uid) {
     const userDoc = await db.collection('users').doc(uid).get();
     if (userDoc.exists) {
@@ -283,32 +384,83 @@ async function openEditModal(uid) {
         editNameInput.value = user.name;
         editEmailInput.value = user.email;
         editRoleSelect.value = user.role;
-        editSectionInput.value = user.section || '';
         
-        // Check if the role is 'student' to show/hide the correct fields
+        editStudentInputsContainer.style.display = 'none';
+        editFacultyInputsContainer.style.display = 'none';
+
         if (user.role === 'student') {
             editStudentInputsContainer.style.display = 'block';
-            
-            // Set the selected year in the new dropdown
-            editYearSelect.value = user.year || ''; 
-        } else {
-            editStudentInputsContainer.style.display = 'none';
+            editSectionInput.value = user.section || '';
+            editYearSelect.value = user.year || '';
+        } else if (user.role === 'faculty') {
+            editFacultyInputsContainer.style.display = 'block';
+            // Correctly pass the array of subject IDs
+            await loadSubjectsForFaculty(user.subjects_taught || []);
         }
         
         editModal.style.display = 'flex';
     }
 }
 
+async function loadSubjectsForFaculty(subjectsTaught) {
+    // Clear the dropdown first to prevent duplicates
+    editSubjectsSelect.innerHTML = '';
+    
+    // Fetch all available subjects from the 'subjects' collection
+    const subjectsSnapshot = await db.collection('subjects').get();
+    
+    subjectsSnapshot.forEach(doc => {
+        const subject = doc.data();
+        const option = document.createElement('option');
+        
+        // Use the document ID as the value to be stored in the array
+        option.value = doc.id;
+        option.textContent = subject.subject_name;
+        
+        // This is the CRITICAL fix: Check if the subject ID is in the faculty's list
+        if (subjectsTaught && subjectsTaught.includes(doc.id)) {
+            option.selected = true;
+        }
+        
+        // Add the option to the dropdown
+        editSubjectsSelect.appendChild(option);
+    });
+}
+// The corrected edit user form logic
+// The corrected edit user form logic
 editForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!currentEditingUserUid) return;
 
-    const updatedData = {
+    let updatedData = {
         name: editNameInput.value,
         role: editRoleSelect.value,
-        section: editRoleSelect.value === 'student' ? editSectionInput.value : null,
-        year: editRoleSelect.value === 'student' ? editYearInput.value : null,
     };
+
+    if (updatedData.role === 'student') {
+        updatedData.section = editSectionInput.value;
+        updatedData.year = editYearSelect.value;
+        // Explicitly delete faculty-related fields to keep the document clean
+        updatedData.subjects_taught = firebase.firestore.FieldValue.delete();
+    } else if (updatedData.role === 'faculty') {
+        // --- CRITICAL FIX: Get all selected options from the multiple select ---
+        const selectedOptions = Array.from(editSubjectsSelect.options)
+            .filter(option => option.selected)
+            .map(option => option.value);
+
+        if (selectedOptions.length === 0) {
+            alert('Please select at least one subject for the faculty member.');
+            return;
+        }
+            
+        updatedData.subjects_taught = selectedOptions;
+        updatedData.section = firebase.firestore.FieldValue.delete();
+        updatedData.year = firebase.firestore.FieldValue.delete();
+    } else { // Admin
+        updatedData.subjects_taught = firebase.firestore.FieldValue.delete();
+        updatedData.section = firebase.firestore.FieldValue.delete();
+        updatedData.year = firebase.firestore.FieldValue.delete();
+    }
 
     try {
         await db.collection('users').doc(currentEditingUserUid).update(updatedData);
@@ -316,7 +468,8 @@ editForm.addEventListener('submit', async (e) => {
         editModal.style.display = 'none';
         loadUsers();
     } catch (error) {
-        alert(error.message);
+        alert("Error updating user: " + error.message);
+        console.error("Error updating user: ", error);
     }
 });
 
