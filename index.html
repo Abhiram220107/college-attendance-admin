@@ -3,28 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>ATTENDIX</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" sizes="32x32" href="logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 </head>
 <body>
 
     <header>
-        <h1>Admin Dashboard</h1>
-    </header>
+    <div class="header-content">
+        <img src="logo.png" alt="Logo" class="logo">
+        <h1 class="header-text">ATTENDIX</h1>
+    </div>
+    <button class="hamburger" id="hamburger-btn">
+                <i class="fa fa-bars"></i>
+            </button>
+</header>
 
     <main>
         <section id="login-container" class="form-container">
-            <h2>Admin Login</h2>
-            <form id="login-form">
-                <input type="email" id="email" placeholder="Email" required>
-                <input type="password" id="password" placeholder="Password" required>
-                <button type="submit">Login</button>
-            </form>
-            <p id="message" class="message"></p>
-        </section>
+  <h2>Admin Login</h2>
+  <form id="login-form">
+
+    <!-- Email -->
+    <div class="form-control">
+      <input type="email" id="email" placeholder=" " required>
+      <label>
+        <span style="transition-delay:0ms">E</span>
+        <span style="transition-delay:50ms">m</span>
+        <span style="transition-delay:100ms">a</span>
+        <span style="transition-delay:150ms">i</span>
+        <span style="transition-delay:200ms">l</span>
+      </label>
+    </div>
+
+    <!-- Password -->
+    <div class="form-control">
+      <input type="password" id="password" placeholder=" "  required>
+      <label>
+        <span style="transition-delay:0ms">P</span>
+        <span style="transition-delay:50ms">a</span>
+        <span style="transition-delay:100ms">s</span>
+        <span style="transition-delay:150ms">s</span>
+        <span style="transition-delay:200ms">w</span>
+        <span style="transition-delay:250ms">o</span>
+        <span style="transition-delay:300ms">r</span>
+        <span style="transition-delay:350ms">d</span>
+      </label>
+        <i class="fa-solid fa-eye password-toggle" id="togglePassword"></i>
+    </div>
+
+    <button id="login-button">
+    <span>Login</span>
+</button>
+  </form>
+
+  <p id="message" class="message"></p>
+</section>
+
 
         <section id="dashboard-container" class="dashboard-container" style="display: none;">
+            
+
             <nav class="dashboard-nav">
                 <button id="nav-users-section" class="nav-button active">Manage Users</button>
                 <button id="nav-subjects-section" class="nav-button">Manage Subjects</button>
@@ -281,5 +323,33 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
+    <script>
+  // Fade in when page loads
+  window.addEventListener('load', () => {
+    document.body.classList.add('page-loaded');
+  });
+  const togglePassword = document.querySelector('#togglePassword');
+const passwordInput = document.querySelector('#password');
+
+togglePassword.addEventListener('click', () => {
+    const type = passwordInput.type === 'password' ? 'text' : 'password';
+    passwordInput.type = type;
+    
+    // Toggle icon class
+    togglePassword.classList.toggle('fa-eye');
+    togglePassword.classList.toggle('fa-eye-slash');
+});
+    const hamburgerBtn = document.getElementById('hamburger-btn');
+const dashboardNav = document.querySelector('.dashboard-nav');
+
+hamburgerBtn.addEventListener('click', () => {
+  dashboardNav.classList.toggle('active');
+});
+
+
+
+</script>
+
+
 </body>
 </html>
